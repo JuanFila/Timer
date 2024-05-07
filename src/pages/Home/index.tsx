@@ -11,6 +11,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as Zod from 'zod';
+import { useState } from "react";
 
 const newCycleFormValidationSchema = Zod.object({
    task: Zod.string().min(1, 'informe  a tarda'),
@@ -18,7 +19,17 @@ const newCycleFormValidationSchema = Zod.object({
 })
 
 type newCycleFormData = Zod.infer<typeof newCycleFormValidationSchema>
+
+interface Cycle {
+  id: string;
+  task: string;
+  minutesAmount: number;
+}
+
 export function Home() {
+
+  const [cycles, setCycles] = useState<Cycle[]>([])
+  const [activeCycleId, setActiveCycleId] =useState<string | null>(null)
 
   const { register, handleSubmit, watch, reset} = useForm<newCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -28,11 +39,21 @@ export function Home() {
     }
   })
 
-  function handleCreateNewCycle(data: any) {
-    console.log(data)
-    reset();
+  function handleCreateNewCycle(data: newCycleFormData) {
+    const newCycle: Cycle = {
+      id: String(new Date().getTime()),
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    }
+
+    setCycles((state) => [...state, newCycle]);
+    // mesma coisa de fazer setCycles([...cycles, newCycle]) vai enviar a informação da mesma maneira;
+    setActiveCycleId(newCycle.id)
+    reset()
   }
 
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId) 
+  console.log(activeCycle)
   const task = watch('task')
   const isSubmitDisabled = !task;
 
